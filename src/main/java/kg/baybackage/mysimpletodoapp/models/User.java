@@ -2,6 +2,7 @@ package kg.baybackage.mysimpletodoapp.models;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.antlr.v4.runtime.misc.NotNull;
 
 @Entity
 @Getter
