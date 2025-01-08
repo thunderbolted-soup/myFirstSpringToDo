@@ -4,11 +4,11 @@ A basic todo application built with Spring Boot that demonstrates basic CRUD ope
 
 ## Technologies Used
 - Java 23
-- Spring Boot 3.4.1
+- Spring Boot
 - Spring Data JPA
 - Spring Security
 - PostgreSQL
-- Thymeleaf
+- Thymeleaf (not used rn)
 - Lombok
 - Maven
 
@@ -37,7 +37,7 @@ mvn clean install
 mvn spring-boot:run
 ```
 
-### API Endpoints
+### REST API things
 
 #### Users
 - GET `/api/v1/users` - Get all users
@@ -47,33 +47,42 @@ mvn spring-boot:run
 - PUT `/api/v1/users/{id}` - Update existing user
 - DELETE `/api/v1/users/{id}` - Delete user
 
+#### Tasks
+- GET `/api/v1/users/{userId}/tasks` - Get all tasks for user
+- GET `/api/v1/users/{userId}/tasks/{id}` - Get task by ID
+- GET `/api/v1/users/{userId}/tasks/search` - Search tasks by title
+- POST `/api/v1/users/{userId}/tasks` - Create new task
+- PUT `/api/v1/users/{userId}/tasks/{id}` - Update existing task
+- DELETE `/api/v1/users/{userId}/tasks/{id}` - Delete task
+
+
+
 # Project Structure
 
 ```
-src/main/java/kg/baybackage/mysimpletodoapp/$
-├── controllers/$
-│   └── UserController.java$
-├── models/$
-│   └── User.java$
-├── repository/$
-│   └── UserRepository.java$
-└── services/$
-    └── UserService.java$
+src/main/java/kg/baybackage/mysimpletodoapp/
+├── controllers/
+│   └── UserController.java
+│   └── TaskController.java
+├── models/
+│   └── Task.java
+│   └── User.java
+├── repository/
+│   └── TaskRepository.java
+│   └── UserRepository.java
+└── services/
+    └── UserService.java
+    └── TaskService.java
 ```
 
 ## Development
 
 This is a learning project that implements basic Spring Boot features. Future improvements might include:
-- Todo items functionality
 - User authentication
-- Better error handling
 - Frontend improvements
 
 ## Version
 Current version: 0.2
 
 ## Author
-Baybackage
-
-## Note
-This is a simple implementation meant for learning purposes and might need additional security measures before production use.
+Anvar Keldibekov aka thunderbolted-soup
