@@ -1,6 +1,6 @@
 package kg.baybackage.mysimpletodoapp.controllers;
 
-import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
 import kg.baybackage.mysimpletodoapp.models.User;
 import kg.baybackage.mysimpletodoapp.services.UserService;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -9,94 +9,84 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/users")
 public class UserController {
-    private final UserService service;
 
-    public UserController(UserService service) {
-        this.service = service;
+    private final UserService userService;
+
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
     @GetMapping
-    public ResponseEntity<List<User>> getAllUser() {
-        List<User> users = service.getAllUsers();
-        if (users.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-        return new ResponseEntity<>(users, HttpStatus.OK);
+    public ResponseEntity<List<User>> getAllUsers() {
+        List<User> users = userService.getAllUsers();
+        return users.isEmpty()
+            ? ResponseEntity.noContent().build()
+            : ResponseEntity.ok(users);
     }
 
-    @GetMapping("/{userId}")
-    public ResponseEntity<User> getUserById(@PathVariable Long userId) {
+    @GetMapping("/{id}")
+    public ResponseEntity<User> getUserById(@PathVariable Long id) {
         try {
-            Optional<User> user = service.getUserById(userId);
-            return user.map(value ->
-                            new ResponseEntity<>(value, HttpStatus.OK))
-                    .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
-        } catch (Exception e){
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return ResponseEntity.ok(userService.getUserById(id));
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
         }
-
     }
 
-    @GetMapping("/findUsername")
-    public ResponseEntity<User> getUserByUsername(@RequestParam String username){
+    @GetMapping("/search")
+    public ResponseEntity<User> searchUser(
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false) String email) {
         try {
-            User user = service.getUserByUsername(username);
-            return new ResponseEntity<>(user, HttpStatus.OK);
-        } catch (Exception e){
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            User user;
+            if (username != null) {
+                user = userService.getUserByUsername(username);
+            } else if (email != null) {
+                user = userService.getUserByEmail(email);
+            } else {
+                return ResponseEntity.badRequest().build();
+            }
+            return ResponseEntity.ok(user);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
         }
-    }
-
-    @GetMapping("/findEmail")
-    public ResponseEntity<User> getUserByEmail(@RequestParam String email){
-        try{
-            User user = service.getUserByEmail(email);
-            return new ResponseEntity<>(user, HttpStatus.OK);
-        } catch (Exception e){
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-
     }
 
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody User user) {
+    public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
         try {
-            User createdUser = service.addUser(user);
-            return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
+            User createdUser = userService.createUser(user);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
         } catch (DataIntegrityViolationException e) {
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
     }
 
-    @PutMapping("/{userId}")
-    public ResponseEntity<User> updateUser(@PathVariable Long userId, @RequestBody User user) {
-        try{
-            User updatedUser = service.updateUser(userId, user).orElseThrow(EntityNotFoundException::new);
-            return new ResponseEntity<>(updatedUser, HttpStatus.OK);
-        } catch (EntityNotFoundException e){
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch (IllegalArgumentException e){
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        } catch (Exception e){
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @DeleteMapping("/{userId}")
-    public ResponseEntity<User> deleteUser(@PathVariable Long userId){
+    @PutMapping("/{id}")
+    public ResponseEntity<User> updateUser(
+            @PathVariable Long id,
+            @Valid @RequestBody User user) {
         try {
-            boolean isDeleted = service.deleteUserById(userId);
-            if (isDeleted){
-                return new ResponseEntity<>(HttpStatus.OK);
-            } else {return new ResponseEntity<>(HttpStatus.NOT_FOUND);}
-        } catch (Exception e){return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);}
+            User updatedUser = userService.updateUser(id, user);
+            return ResponseEntity.ok(updatedUser);
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        try {
+            userService.deleteUser(id);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }

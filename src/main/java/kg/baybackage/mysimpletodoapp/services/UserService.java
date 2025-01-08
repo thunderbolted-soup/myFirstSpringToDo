@@ -1,63 +1,82 @@
 package kg.baybackage.mysimpletodoapp.services;
 
+import jakarta.persistence.EntityNotFoundException;
 import kg.baybackage.mysimpletodoapp.models.User;
 import kg.baybackage.mysimpletodoapp.repository.UserRepository;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class UserService {
 
-    private final UserRepository repository;
+    private final UserRepository userRepository;
 
-    public UserService(UserRepository repository) {
-        this.repository = repository;
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
-    // add, delete, update
-    public User addUser(User user) {
-        if (repository.existsByEmail(user.getEmail())) {
-            throw new DataIntegrityViolationException("Email already exists");
-        }
-        if (repository.existsByUsername(user.getUsername())) {
-            throw new DataIntegrityViolationException("Username already exists");
-        }
-        return repository.save(user);
-    }
-
-
-
-    public boolean deleteUserById(Long id) {
-        repository.deleteById(id);
-        return true;
-    }
-
-    public Optional<User> updateUser(Long id, User user) {
-    return repository
-            .findById(id)
-            .map(existingUser -> {
-            user.setId(id);
-            return repository.save(user);
-        });
-}
-
-
-    // getting some shit
     public List<User> getAllUsers() {
-        return repository.findAll();
+        return userRepository.findAll();
     }
 
-    public Optional<User> getUserById(Long id) {
-        return repository.findById(id);
+    public User getUserById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + id));
     }
 
-    public User getUserByUsername(String username) {return repository.findByUsername(username);}
+    public User getUserByUsername(String username) {
+        User user = userRepository.findByUsername(username);
+        if (user == null) {
+            throw new EntityNotFoundException("User not found with username: " + username);
+        }
+        return user;
+    }
 
     public User getUserByEmail(String email) {
-        return repository.findByEmail(email);
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new EntityNotFoundException("User not found with email: " + email);
+        }
+        return user;
     }
 
+    public User createUser(User user) {
+        validateNewUser(user);
+        return userRepository.save(user);
+    }
+
+    public User updateUser(Long id, User user) {
+        User existingUser = getUserById(id);
+
+        if (!existingUser.getEmail().equals(user.getEmail()) &&
+            userRepository.existsByEmail(user.getEmail())) {
+            throw new DataIntegrityViolationException("Email already exists");
+        }
+
+        if (!existingUser.getUsername().equals(user.getUsername()) &&
+            userRepository.existsByUsername(user.getUsername())) {
+            throw new DataIntegrityViolationException("Username already exists");
+        }
+
+        user.setId(id);
+        return userRepository.save(user);
+    }
+
+    public void deleteUser(Long id) {
+        if (!userRepository.existsById(id)) {
+            throw new EntityNotFoundException("User not found with id: " + id);
+        }
+        userRepository.deleteById(id);
+    }
+
+    private void validateNewUser(User user) {
+        if (userRepository.existsByEmail(user.getEmail())) {
+            throw new DataIntegrityViolationException("Email already exists");
+        }
+        if (userRepository.existsByUsername(user.getUsername())) {
+            throw new DataIntegrityViolationException("Username already exists");
+        }
+    }
 }
