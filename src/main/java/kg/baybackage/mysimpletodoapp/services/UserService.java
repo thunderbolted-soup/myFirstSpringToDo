@@ -54,12 +54,10 @@ public class UserService {
         return repository.findById(id);
     }
 
-    public User getUserByUsername(String username) {
-        return repository.findByUsername(username);
-    }
+    public User getUserByUsername(String username) {return repository.findByUsername(username);}
 
-    // not using optional bc (nullable = false, unique = true) in user class
     public User getUserByEmail(String email) {
         return repository.findByEmail(email);
     }
+
 }

@@ -108,7 +108,7 @@ public class TaskService {
         });
     }
 
-    public void deleteTask(Long id, Long userId){
+    public Optional<Task> deleteTask(Long id, Long userId){
         Task task = taskRepository.findById(id)
                         .orElseThrow(() -> new EntityNotFoundException("Task not found."));
 
@@ -116,6 +116,7 @@ public class TaskService {
             throw new AccessDeniedException("User does not have permission to delete this task");
         }
         taskRepository.deleteById(id);
+        return null;
     }
 
 }
