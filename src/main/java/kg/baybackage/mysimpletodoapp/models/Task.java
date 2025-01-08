@@ -1,18 +1,18 @@
 package kg.baybackage.mysimpletodoapp.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import kg.baybackage.mysimpletodoapp.enums.Priority;
 import kg.baybackage.mysimpletodoapp.enums.Status;
 import lombok.*;
-import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 
 @Entity
-@Component
 @Getter
 @Setter
-@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "tasks")
@@ -20,25 +20,26 @@ public class Task {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // just ID
+    private Long id;
 
-    @Column(nullable = false)
+    @NotNull(message = "User ID is required")
     private Long userId;
 
-    @Column(nullable = false)
-    private String title; // just title
+    @NotBlank(message = "Title is required")
+    @Size(min = 3, max = 100, message = "Title must be between 3 and 100 characters")
+    private String title;
 
-    @Column(nullable = false)
-    private String description; // just description
+    @Size(max = 500, message = "Description cannot exceed 500 characters")
+    private String description;
 
-    @Column(nullable = false)
+    @NotNull(message = "Priority is required")
     @Enumerated(EnumType.STRING)
-    private Priority priority = Priority.UNDEFINED; // based on enums (LOW, MEDIUM, HIGH, UNDEFINED)
+    private Priority priority = Priority.UNDEFINED;
 
-    @Column(nullable = false)
+    @NotNull(message = "Status is required")
     @Enumerated(EnumType.STRING)
-    private Status status = Status.IN_PROGRESS; // based on enums (TОDО, IN_PROGRESS, DONE)
+    private Status status = Status.IN_PROGRESS;
 
-    @Column(nullable = false)
-    private LocalDate deadline; // LocalDate
+    @NotNull(message = "Deadline is required")
+    private LocalDate deadline;
 }

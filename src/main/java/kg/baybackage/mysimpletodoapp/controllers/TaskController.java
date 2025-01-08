@@ -1,129 +1,58 @@
 package kg.baybackage.mysimpletodoapp.controllers;
 
-import kg.baybackage.mysimpletodoapp.enums.Priority;
-import kg.baybackage.mysimpletodoapp.enums.Status;
+import jakarta.validation.Valid;
 import kg.baybackage.mysimpletodoapp.models.Task;
 import kg.baybackage.mysimpletodoapp.services.TaskService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
-
-// todo СДЕЛАТЬ КОД БОЛЕЕ БЕЗОПАСНЫМ! я добавил в параметры многих методов userId, чтобы реализовать верификацию ASAP
 @RestController
-@RequestMapping("/api/v1/users/{userId}")
+@RequestMapping("/api/v1/users/{userId}/tasks")
 public class TaskController {
 
-    private final TaskService service;
+    private final TaskService taskService;
 
-    public TaskController(TaskService service) {
-        this.service = service;
+    public TaskController(TaskService taskService) {
+        this.taskService = taskService;
     }
 
-    @GetMapping("/all")
+    @GetMapping
     public ResponseEntity<List<Task>> getAllTasks(@PathVariable Long userId) {
-        List<Task> tasks = service.getAllTasks(userId);
-
-        if (tasks.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-        return new ResponseEntity<>(tasks, HttpStatus.OK);
+        List<Task> tasks = taskService.getAllTasks(userId);
+        return ResponseEntity.ok(tasks);
     }
 
-    @GetMapping("/t{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<Task> getTaskById(@PathVariable Long userId, @PathVariable Long id) {
-        Optional<Task> task = service.getTaskById(id);
-
-        if (task.isPresent() && !task.get().getUserId().equals(userId)){
-            throw new AccessDeniedException("User does not have permission to this task");
-        }
-
-        return task.map(value ->
-                new ResponseEntity<>(value, HttpStatus.OK)).orElseGet(() ->
-                new ResponseEntity<>(HttpStatus.NOT_FOUND));
-    }
-    @GetMapping("/findTitle")
-    public ResponseEntity<List<Task>> getTasksContainsTitle(@PathVariable Long userId, @RequestParam String title){
-        try {
-            List<Task> tasks = service.getTasksContainTitle(title, userId);
-            if (tasks.isEmpty()) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            return new ResponseEntity<>(tasks, HttpStatus.OK);
-        }catch (Exception e){
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-    @GetMapping("/findStatus")
-    public ResponseEntity<List<Task>> getTasksByStatus(@PathVariable Long userId, @RequestParam Status status){
-        try{
-            List<Task> tasks = service.getByStatus(status, userId);
-            if (tasks.isEmpty()) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            return new ResponseEntity<>(tasks, HttpStatus.OK);
-        }catch (Exception e){
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        Task task = taskService.getTaskById(id, userId);
+        return ResponseEntity.ok(task);
     }
 
-    @GetMapping("/findStatusNot")
-    public ResponseEntity<List<Task>> getTasksByStatusNot(@PathVariable Long userId, @RequestParam Status status){
-        try{
-            List<Task> tasks = service.getByStatusNot(status, userId);
-            if (tasks.isEmpty()) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            return new ResponseEntity<>(tasks, HttpStatus.OK);
-        }catch (Exception e){
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @GetMapping("/findPriority")
-    public ResponseEntity<List<Task>> getTasksByPriority(@PathVariable Long userId, @RequestParam Priority priority){
-        try{
-            List<Task> tasks = service.getByPriority(priority, userId);
-            if (tasks.isEmpty()) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            return new ResponseEntity<>(tasks, HttpStatus.OK);
-        }catch (Exception e){
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    @GetMapping("/search")
+    public ResponseEntity<List<Task>> searchTasks(@PathVariable Long userId, @RequestParam String title) {
+        List<Task> tasks = taskService.getTasksContainTitle(title, userId);
+        return ResponseEntity.ok(tasks);
     }
 
     @PostMapping
-    public ResponseEntity<Task> addTask(@PathVariable Long userId, @RequestBody Task task) {
-        try{
-            // todo! add user verification via spring security
-            Task createdTask = service.createTask(task);
-            return new ResponseEntity<>(HttpStatus.CREATED);
-        } catch (Exception e){
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+    public ResponseEntity<Task> createTask(@PathVariable Long userId, @Valid @RequestBody Task task) {
+        Task createdTask = taskService.createTask(task, userId);
+        return ResponseEntity.ok(createdTask);
     }
 
-    @PutMapping("/t{id}")
-    public ResponseEntity<Task> updateTask(@PathVariable Long userId, @PathVariable Long id, @RequestBody Task task) {
-        try{
-            Optional<Task> updatedTask = service.updateTask(id, task);
-            if (updatedTask.isEmpty()){
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
-            return new ResponseEntity<>(HttpStatus.OK);
-        } catch (Exception e){
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+    @PutMapping("/{id}")
+    public ResponseEntity<Task> updateTask(@PathVariable Long userId,
+                                         @PathVariable Long id,
+                                         @Valid @RequestBody Task task) {
+        Task updatedTask = taskService.updateTask(id, task, userId);
+        return ResponseEntity.ok(updatedTask);
     }
 
-    @DeleteMapping("/t{id}")
-    public ResponseEntity<Task> deleteTask(@PathVariable Long id, @PathVariable Long userId){
-        try {
-            Optional<Task> deletedTask = service.deleteTask(id, userId);
-            if (deletedTask.isEmpty()){
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
-            return new ResponseEntity<>(HttpStatus.OK);
-        } catch (Exception e){
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteTask(@PathVariable Long userId, @PathVariable Long id) {
+        taskService.deleteTask(id, userId);
+        return ResponseEntity.ok().build();
     }
 }
