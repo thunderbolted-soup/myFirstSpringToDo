@@ -54,6 +54,7 @@ public class TaskService {
 
         validateTaskOwnership(existingTask, userId);
 
+        // в глазах код двоится.
         existingTask.setTitle(updatedTask.getTitle());
         existingTask.setDescription(updatedTask.getDescription());
         existingTask.setPriority(updatedTask.getPriority());

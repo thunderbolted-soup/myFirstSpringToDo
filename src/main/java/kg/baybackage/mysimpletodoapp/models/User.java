@@ -19,6 +19,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // заебался с этой валидацией(
     @NotBlank(message = "Username is required")
     @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
     @Column(nullable = false, unique = true)
@@ -28,6 +29,7 @@ public class User {
     @Email(message = "Email should be valid")
     @Column(nullable = false, unique = true)
     private String email;
+
 
     public User(String username, String email) {
         this.username = username;

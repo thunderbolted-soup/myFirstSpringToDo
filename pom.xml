@@ -8,13 +8,13 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.4.1</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <relativePath/>
     </parent>
     <groupId>kg.baybackage</groupId>
     <artifactId>my-simple-todo-app</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.2</version>
     <name>my simple todo app</name>
-    <description>Супер гейский проект по захвату человечества</description>
+    <description>My realisation of todo app in spring</description>
     <url/>
     <licenses>
         <license/>
