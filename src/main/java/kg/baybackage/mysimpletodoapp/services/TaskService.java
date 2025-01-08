@@ -1,15 +1,13 @@
 package kg.baybackage.mysimpletodoapp.services;
 
 import jakarta.persistence.EntityNotFoundException;
-import kg.baybackage.mysimpletodoapp.enums.Priority;
-import kg.baybackage.mysimpletodoapp.enums.Status;
+
 import kg.baybackage.mysimpletodoapp.models.Task;
 import kg.baybackage.mysimpletodoapp.repository.TaskRepository;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class TaskService {
